@@ -106,3 +106,30 @@ def with_transaction():
 @with_transaction
 def do_in_transaction():
     pass
+
+class _LasyConnection(object):  
+    def __init__(self):  
+        self.connection=None  
+  
+    def cursor(self):  
+        if self.connection is None:  
+            connection=engine.connect()  
+            #logging.info('open connection <%s>...' % hex(id(connection)))  
+            self.connection = connection  
+        return self.connection.cursor()  
+  
+    def commit(self):  
+        self.connection.commit()  
+  
+    def rollback(self):  
+        #print '================='  
+        #print self.connection  
+        self.connection.rollback()  
+  
+    def cleanup(self):  
+        if self.connection:  
+            connection = self.connection  
+            self.connection=None  
+            #logging.info('colse connection <%s>...' %hex(id(connection)))  
+            connection.close() 
+
