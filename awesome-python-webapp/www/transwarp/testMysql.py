@@ -43,6 +43,7 @@ info = cur.fetchmany(tables)
 for ii in info:
     print ii
 
+print info
 
 
 cur.close()
