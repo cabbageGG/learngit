@@ -1,7 +1,39 @@
-#db.py
+#!/usr/bin/env python
 # －*－coding:utf-8 -*-
 
-import threading
+import threading,logging
+
+
+class Dict(dict):
+    '''
+    封装dict 可以有a.c的形式 方便ORM模块
+    example:
+    >>>a = Dict(a=1,b=2,c=3)
+    >>>a.c
+    3
+    >>>a = dict(a=1,b=2,c=3)
+    >>>a.c
+    error
+     
+    '''
+    def __init__(self, names=(), values=(), **kw):
+        super(Dict,self).__init__()
+        for k, v in zip(names,values):
+            self[k] = v
+    
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(r"'Dict' has no attribute %s" % key)
+    
+    def __setattr__(self, key, value):
+        self[key] = value
+
+class DBError(Exception):
+    pass
+
+engine = None
 
 #数据库引擎对象
 class _Engine(object):
@@ -10,7 +42,15 @@ class _Engine(object):
     def connect(self):
         return self._connect()
 
-engine = None
+
+def create_engine(user, passwd, db, host='127.0.0.1', port=3306 ,**kw):
+    import MySQLdb
+    global engine 
+    if engine is not None:
+        raise DBError('Engine is already initialized')
+    params = dict(user=user, passwd=passwd, db=db, host=host, port=port)
+    engine = _Engine(lambda:MySQLdb.connect(**params)) # **把params当作一个字典传入 why send a func return : 必须的，传递一个object
+    logging.info("Init mysql engine <%s> ok" % hex(id(engine)))
 
 #持有数据库连接的上下文对象
 class _DbCtx(threading.local):

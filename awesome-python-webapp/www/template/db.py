@@ -144,17 +144,18 @@ class _Engine(object):
     def connect(self):
         return self._connect()
 
-def create_engine(user, password, database, host='127.0.0.1', port=3306, **kw):
+def create_engine(user, passwd, db, host='127.0.0.1', port=3306, **kw):
     import MySQLdb
     global engine
     if engine is not None:
         raise DBError('Engine is already initialized.')
-    params = dict(user=user, password=password, database=database, host=host, port=port)
-    defaults = dict(use_unicode=True, charset='utf8', collation='utf8_general_ci', autocommit=False)
-    for k, v in defaults.iteritems():
-        params[k] = kw.pop(k, v)
-    params.update(kw)
+    params = dict(user=user, passwd=passwd, db=db, host=host, port=port)
+    # defaults = dict(use_unicode=True, charset='utf8', collation='utf8_general_ci', autocommit=False)
+    # for k, v in defaults.iteritems():
+    #     params[k] = kw.pop(k, v)
+    # params.update(kw)
     #params['buffered'] = True
+    print params
     engine = _Engine(lambda: MySQLdb.connect(**params))
     # test connection...
     logging.info('Init mysql engine <%s> ok.' % hex(id(engine)))
@@ -476,8 +477,8 @@ def update(sql, *args):
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
-    create_engine('www-data', 'www-data', 'test')
+    create_engine('root', '123456', 'test')
     update('drop table if exists user')
     update('create table user (id int primary key, name text, email text, passwd text, last_modified real)')
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
