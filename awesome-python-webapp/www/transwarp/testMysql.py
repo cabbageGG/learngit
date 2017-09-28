@@ -35,7 +35,8 @@ cur = conn.cursor()
 
 sql = 'select * from student'
 tables = cur.execute(sql)
-
+des = cur.description
+print des
 print('hello')
 print tables
 
