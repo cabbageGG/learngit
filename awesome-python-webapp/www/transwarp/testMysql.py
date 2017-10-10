@@ -7,7 +7,7 @@ conn = MySQLdb.connect(
     port= 3306,
     user='root',
     passwd='123456',
-    db = 'test',
+    db = 'awesome',
 )
 
 cur = conn.cursor()
@@ -33,7 +33,7 @@ cur = conn.cursor()
 #     ('3','Yaheng','2 year 2 class','7'),
 #     ])
 
-sql = 'select * from student'
+sql = 'show tables'
 tables = cur.execute(sql)
 des = cur.description
 print des
@@ -43,10 +43,7 @@ print tables
 info = cur.fetchmany(tables)
 for ii in info:
     print ii
-
-print info
-
-
+    
 cur.close()
 conn.commit()
 conn.close()
