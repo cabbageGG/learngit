@@ -112,7 +112,7 @@ class _Engine(object):
         self._connect = connect
     def connect(self):
         return self._connect()
-def create_engine(user, passwd, db, host='127.0.0.1', port=3306 ,**kw):
+def create_engine(user='root', passwd='123456', db='test', host='127.0.0.1', port=3306 ,**kw):
     import MySQLdb
     global engine 
     if engine is not None:
@@ -216,7 +216,7 @@ def with_transaction(func):
 def _select(sql, first, *args):  #原生的select语句，支持一条结果与多条结果的查询 返回的list结果封装成 dict
     global _db_ctx
     cursor = None
-    sql = sql.replace('?','%')
+    sql = sql.replace('?','%s')
     logging.info('sql is: %s , args is: %s' % (sql,args))
     try:
         cursor = _db_ctx.connection.cursor()
@@ -265,11 +265,12 @@ def _update(sql,*args):
     '''
     global _db_ctx
     cursor = None
-    sql = sql.replace('?','%')
+    sql = sql.replace('?','%s')
     logging.info('sql is: %s , args is %s' % (sql, args))
     try:             #注意：需要判断下，当前是否有事务在执行，没有的话，可以自动提交 
         cursor = _db_ctx.connection.cursor()
-        cursor.excute(sql, *args)
+        #print args
+        cursor.execute(sql, args)
         r = cursor.rowcount
         if _db_ctx.transactions == 0:
             logging.info('auto commit')
@@ -285,15 +286,19 @@ def insert(table, **kw):
     '''
     cols, args = zip(*kw.iteritems())  
     sql = 'insert into `%s` (%s) values (%s)' % (table, ','.join(['`%s`' % col for col in cols]), ','.join(['?' for i in range(len(cols))]))
+    #print 'insert test sql: %s' % sql
     return _update(sql, *args)
 def update(sql, *args):
     return _update(sql, *args)
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    create_engine('root','123456','test')
+    create_engine()
     print callable(update)
     # update('drop table if exists user')
     # update('create table user (id int primary key, name text, email text, passwd text, last_modified real)')
     a = select('select * from user')
     print a
     print 'hello'
+    u1 = dict(id=2001, name='Bob', email='bob@test.org', passwd='bobobob', last_modified=time.time())
+    insert('user', **u1)
+

@@ -15,23 +15,23 @@ class Field(object):
 
     _count = 0
 
-    def __init__(self, **kw):
-        self.name = kw.get('name', None)
-        self._default = kw.get('default', None)
-        self.primary_key = kw.get('primary_key', False)
-        self.nullable = kw.get('nullable', False)
-        self.updatable = kw.get('updatable', True)
-        self.insertable = kw.get('insertable', True)
-        self.ddl = kw.get('ddl', '')
+    def __init__(self, **kw):                           #定义数据库表的各种属性
+        self.name = kw.get('name', None)                
+        self._default = kw.get('default', None)         #默认值获得方式
+        self.primary_key = kw.get('primary_key', False) #是否主键
+        self.nullable = kw.get('nullable', False)       #是否可为空
+        self.updatable = kw.get('updatable', True)      #是否可更新  
+        self.insertable = kw.get('insertable', True)    #是否可插入
+        self.ddl = kw.get('ddl', '')                    #值类型
         self._order = Field._count
         Field._count = Field._count + 1
 
     @property
     def default(self):
-        d = self._default   #返回什么呢？
-        return d() if callable(d) else d
+        d = self._default        #返回的是自定义的方式，可以是值，也可以是函数
+        return d() if callable(d) else d  # 判断是值还是函数
 
-    def __str__(self):
+    def __str__(self):           # python 特殊方法，当需要转换为字符串时，自动调用
         s = ['<%s:%s,%s,default(%s),' % (self.__class__.__name__, self.name, self.ddl, self._default)]
         self.nullable and s.append('N')
         self.updatable and s.append('U')
@@ -111,7 +111,7 @@ def _gen_sql(table_name, mappings):
         if f.primary_key:
             pk = f.name
         sql.append(nullable and '  `%s` %s,' % (f.name, ddl) or '  `%s` %s not null,' % (f.name, ddl))
-    sql.append('  primary key(`%s`)' % pk)
+    sql.append('  primary key(`%s`)' % pk) 
     sql.append(');')
     return '\n'.join(sql)
 
@@ -119,7 +119,7 @@ class ModelMetaclass(type):
     '''
     Metaclass for model objects.
     '''
-    def __new__(cls, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):  #name : class name
         # skip base Model class:
         if name=='Model':
             return type.__new__(cls, name, bases, attrs)
@@ -166,7 +166,7 @@ class ModelMetaclass(type):
             if not trigger in attrs:
                 attrs[trigger] = None
         return type.__new__(cls, name, bases, attrs)
-
+    
 class Model(dict):
     '''
     Base class for ORM.
@@ -308,13 +308,28 @@ class Model(dict):
                 if not hasattr(self, k):
                     setattr(self, k, v.default)
                 params[v.name] = getattr(self, k)
+        #print 'insert parmas: %s' % params
         db.insert('%s' % self.__table__, **params)
         return self
+
+class UserTest(Model):
+    __table__ = 'user'
+    id = IntegerField(primary_key=True)
+    name = StringField()
+    email = StringField(updatable=False)
+    passwd = StringField(default=lambda: '******')
+    last_modified = FloatField()
+    def pre_insert(self):
+        self.last_modified = time.time()
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
     db.create_engine()
-    db.update('drop table if exists user')
-    db.update('create table user (id int primary key, name text, email text, passwd text, last_modified real)')
-    import doctest
-    doctest.testmod()
+#    a = db.select('select * from user')
+#    print a
+    u = UserTest(id=10193, name='Michael', email='orm@db.org')
+    u.insert() # 先测试db.insert()工作原理
+    print u.name
+
+    # import doctest
+    # doctest.testmod()
