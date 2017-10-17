@@ -1,0 +1,2 @@
+use awesome
+show tables

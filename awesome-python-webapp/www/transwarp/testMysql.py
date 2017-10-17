@@ -34,6 +34,7 @@ cur = conn.cursor()
 #     ])
 
 sql = 'show tables'
+#sql = 'select * from student'
 tables = cur.execute(sql)
 des = cur.description
 print des
